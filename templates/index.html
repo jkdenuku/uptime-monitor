@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PulseWatch{% endblock %}
+
+{% block extra_head %}
+<style>
+  .monitor-row td:first-child { font-weight: 700; }
+  .url-cell { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-cell { font-family: var(--mono); }
+  .actions { display: flex; gap: 0.5rem; }
+  .header-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+
+  .live-dot {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+  }
+  .live-dot::before {
+    content: '';
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-row">
+  <div class="page-header" style="margin:0">
+    <h1>Dashboard</h1>
+    <p>Monitoring {{ total }} endpoint{% if total != 1 %}s{% endif %} &nbsp;·&nbsp; <span class="live-dot">live</span></p>
+  </div>
+  <a href="/monitor/add" class="btn btn-primary">+ Add Monitor</a>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total</div>
+    <div class="stat-value blue">{{ total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Online</div>
+    <div class="stat-value green">{{ up }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Offline</div>
+    <div class="stat-value red">{{ down }}</div>
+  </div>
+  {% if total > 0 %}
+  <div class="stat-card">
+    <div class="stat-label">Health</div>
+    <div class="stat-value {% if up == total %}green{% elif down == total %}red{% else %}blue{% endif %}">
+      {{ ((up / total) * 100) | round(0) | int }}%
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Monitor list -->
+{% if monitors %}
+<div class="card">
+  <div class="card-header">
+    <span style="font-weight:700; font-size:0.9rem;">Monitors</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>URL</th>
+        <th>Status</th>
+        <th>Response</th>
+        <th>Last Check</th>
+        <th>Uptime Bar</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in monitors %}
+      <tr class="monitor-row">
+        <td>
+          <a href="/monitor/{{ m.id }}" style="color:var(--text); text-decoration:none;">{{ m.name }}</a>
+          {% if not m.active %}<span style="font-size:0.7rem; color:var(--muted); margin-left:0.4rem;">[paused]</span>{% endif %}
+        </td>
+        <td class="url-cell" title="{{ m.url }}">{{ m.url }}</td>
+        <td>
+          {% if m.last_status == 'up' %}
+            <span class="badge badge-up"><span class="badge-dot"></span>UP</span>
+          {% elif m.last_status == 'down' %}
+            <span class="badge badge-down"><span class="badge-dot"></span>DOWN</span>
+          {% else %}
+            <span class="badge badge-unknown"><span class="badge-dot"></span>—</span>
+          {% endif %}
+        </td>
+        <td class="ms-cell" id="ms-{{ m.id }}">—</td>
+        <td style="font-family:var(--mono); font-size:0.78rem; color:var(--muted);" id="ts-{{ m.id }}">
+          {% if m.last_checked %}{{ m.last_checked }}{% else %}Never{% endif %}
+        </td>
+        <td style="min-width:120px;">
+          <div class="uptime-bar-wrap" id="bar-{{ m.id }}" title="Loading uptime history…"></div>
+        </td>
+        <td>
+          <div class="actions">
+            <a href="/monitor/{{ m.id }}" class="btn btn-ghost btn-sm">Details</a>
+            <form method="post" action="/monitor/{{ m.id }}/toggle" style="display:inline">
+              <button class="btn btn-ghost btn-sm">{{ 'Resume' if not m.active else 'Pause' }}</button>
+            </form>
+            <form method="post" action="/monitor/{{ m.id }}/delete" style="display:inline"
+                  onsubmit="return confirm('Delete this monitor?')">
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Load mini uptime bars + response times
+const monitors = [{% for m in monitors %}{ id: {{ m.id }} }{% if not loop.last %},{% endif %}{% endfor %}];
+
+monitors.forEach(({ id }) => {
+  fetch(`/api/monitor/${id}/chart?hours=24`)
+    .then(r => r.json())
+    .then(data => {
+      // uptime bar
+      const bar = document.getElementById(`bar-${id}`);
+      if (!bar) return;
+      if (!data.length) { bar.innerHTML = '<span style="color:var(--muted);font-size:0.75rem;font-family:var(--mono)">No data</span>'; return; }
+      // bucket into ~40 segments
+      const buckets = 40;
+      const size = Math.ceil(data.length / buckets);
+      for (let i = 0; i < data.length; i += size) {
+        const slice = data.slice(i, i + size);
+        const ups   = slice.filter(d => d.status === 'up').length;
+        const ratio = ups / slice.length;
+        const s = document.createElement('span');
+        s.style.background = ratio > 0.9 ? 'var(--accent)' : ratio > 0.5 ? 'var(--warn)' : 'var(--danger)';
+        s.style.opacity = 0.4 + ratio * 0.6;
+        s.title = `${Math.round(ratio*100)}% up`;
+        bar.appendChild(s);
+      }
+      // last response time
+      const last = data[data.length - 1];
+      if (last && last.ms !== null) {
+        const cell = document.getElementById(`ms-${id}`);
+        if (cell) cell.textContent = last.ms + ' ms';
+      }
+    })
+    .catch(() => {});
+});
+</script>
+{% else %}
+<div class="empty">
+  <h3>No monitors yet</h3>
+  <p>Add your first URL to start monitoring.</p>
+  <a href="/monitor/add" class="btn btn-primary">+ Add Monitor</a>
+</div>
+{% endif %}
+{% endblock %}
