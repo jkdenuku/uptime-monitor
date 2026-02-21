@@ -1,9 +1,13 @@
 services:
   - type: web
-    name: watchtower-monitor
+    name: uptime-monitor
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: bash start.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: uptime-monitor-db
+          property: connectionString
