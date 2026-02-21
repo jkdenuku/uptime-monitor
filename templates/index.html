@@ -9,99 +9,43 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #080a0e;
-  --s1: #0e1117;
-  --s2: #151922;
-  --border: #1e2330;
-  --green: #00e5a0;
-  --red: #ff4466;
-  --yellow: #ffcc00;
-  --blue: #4488ff;
-  --text: #dde3f0;
-  --muted: #4a5568;
-  --mono: 'JetBrains Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
+  --bg: #080a0e; --s1: #0e1117; --s2: #151922; --border: #1e2330;
+  --green: #00e5a0; --red: #ff4466; --yellow: #ffcc00; --blue: #4488ff;
+  --text: #dde3f0; --muted: #4a5568;
+  --mono: 'JetBrains Mono', monospace; --sans: 'DM Sans', sans-serif;
 }
 html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
 body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,229,160,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(68,136,255,0.04) 0%, transparent 60%);
-  pointer-events: none;
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,229,160,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 80% 100%, rgba(68,136,255,0.04) 0%, transparent 60%);
 }
-
-/* ── NAV ── */
 nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(8,10,14,0.9);
-  backdrop-filter: blur(16px);
+  background: rgba(8,10,14,0.9); backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  display: flex; align-items: center; height: 56px; gap: 2rem;
+  padding: 0 2rem; display: flex; align-items: center; height: 56px; gap: 2rem;
 }
-.logo {
-  font-family: var(--mono); font-weight: 700; font-size: 1rem;
-  color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 0.6rem;
-}
-.logo-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 10px var(--green);
-  animation: glow 2s ease-in-out infinite;
-}
+.logo { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 0.6rem; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: glow 2s ease-in-out infinite; }
 @keyframes glow { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .nav-tabs { display: flex; gap: 0.25rem; margin-left: auto; }
-.tab-btn {
-  background: none; border: none; cursor: pointer;
-  font-family: var(--sans); font-size: 0.85rem; font-weight: 500;
-  color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 6px;
-  transition: all 0.15s;
-}
+.tab-btn { background: none; border: none; cursor: pointer; font-family: var(--sans); font-size: 0.85rem; font-weight: 500; color: var(--muted); padding: 0.4rem 0.9rem; border-radius: 6px; transition: all 0.15s; }
 .tab-btn:hover { color: var(--text); background: var(--s2); }
 .tab-btn.active { color: var(--text); background: var(--s2); }
-
-/* ── LAYOUT ── */
 main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 2rem; }
-
-/* ── VIEWS ── */
 .view { display: none; }
 .view.active { display: block; }
-
-/* ── TOAST ── */
-#toast {
-  position: fixed; bottom: 2rem; right: 2rem; z-index: 999;
-  padding: 0.75rem 1.25rem; border-radius: 8px;
-  font-size: 0.875rem; font-weight: 600; font-family: var(--mono);
-  transform: translateY(100px); opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  pointer-events: none;
-}
+#toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 999; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600; font-family: var(--mono); transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
 #toast.show { transform: translateY(0); opacity: 1; }
 #toast.success { background: rgba(0,229,160,0.15); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
 #toast.error   { background: rgba(255,68,102,0.15); color: var(--red);   border: 1px solid rgba(255,68,102,0.3); }
-
-/* ── STATS ── */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
-  gap: 1rem; margin-bottom: 2rem;
-}
-.stat-card {
-  background: var(--s1); border: 1px solid var(--border); border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-}
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; }
 .stat-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
 .stat-value { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; }
 .c-green { color: var(--green); } .c-red { color: var(--red); } .c-blue { color: var(--blue); }
-
-/* ── MONITOR TABLE ── */
 .monitors-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .card-hdr { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .card-hdr span { font-weight: 700; font-size: 0.9rem; }
@@ -111,69 +55,38 @@ td { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(30,35,48,0.5); font-si
 tr:last-child td { border-bottom: none; }
 tbody tr { transition: background 0.1s; }
 tbody tr:hover { background: var(--s2); }
-
-/* ── BADGE ── */
-.badge {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  padding: 0.2rem 0.65rem; border-radius: 20px;
-  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
-}
+.badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.65rem; border-radius: 20px; font-family: var(--mono); font-size: 0.72rem; font-weight: 700; }
 .badge-up      { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.2); }
 .badge-down    { background: rgba(255,68,102,0.1); color: var(--red);   border: 1px solid rgba(255,68,102,0.2); }
 .badge-unknown { background: rgba(74,85,104,0.2);  color: var(--muted); border: 1px solid var(--border); }
 .bdot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .badge-up .bdot { animation: glow 1.5s ease-in-out infinite; }
-
-/* ── BUTTONS ── */
-.btn {
-  display: inline-flex; align-items: center; gap: 0.35rem;
-  padding: 0.45rem 1rem; border-radius: 7px; border: none; cursor: pointer;
-  font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
-  text-decoration: none; transition: all 0.15s;
-}
+.btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 1rem; border-radius: 7px; border: none; cursor: pointer; font-family: var(--sans); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.15s; }
 .btn-primary { background: var(--green); color: #000; }
 .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,229,160,0.25); }
 .btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
 .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 .btn-danger  { background: rgba(255,68,102,0.1); color: var(--red); border: 1px solid rgba(255,68,102,0.25); }
 .btn-danger:hover { background: rgba(255,68,102,0.2); }
+.btn-warn    { background: rgba(255,204,0,0.1); color: var(--yellow); border: 1px solid rgba(255,204,0,0.25); }
+.btn-warn:hover { background: rgba(255,204,0,0.2); }
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.78rem; }
-
-/* ── EMPTY ── */
 .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); }
 .empty h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text); }
 .empty p  { font-size: 0.9rem; margin-bottom: 1.5rem; }
-
-/* ── MODAL ── */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.2s;
-}
+.modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--s1); border: 1px solid var(--border); border-radius: 14px;
-  padding: 2rem; width: 100%; max-width: 480px;
-  transform: scale(0.95); transition: transform 0.2s;
-}
+.modal { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; padding: 2rem; width: 100%; max-width: 480px; transform: scale(0.95); transition: transform 0.2s; }
 .modal-overlay.open .modal { transform: scale(1); }
 .modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; }
 .form-group { margin-bottom: 1.25rem; }
 .form-group label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
-.form-group input, .form-group select {
-  width: 100%; padding: 0.65rem 0.9rem;
-  background: var(--s2); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
-  font-family: var(--mono); font-size: 0.875rem; outline: none;
-  transition: border-color 0.15s;
-}
+.form-group input, .form-group select { width: 100%; padding: 0.65rem 0.9rem; background: var(--s2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-family: var(--mono); font-size: 0.875rem; outline: none; transition: border-color 0.15s; }
 .form-group input:focus, .form-group select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,229,160,0.1); }
 .form-group input::placeholder { color: var(--muted); }
+.form-group select option { background: var(--s2); }
 .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
 .modal-actions .btn { flex: 1; justify-content: center; }
-
-/* ── DETAIL VIEW ── */
 .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
 .detail-header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
 .detail-url { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
@@ -182,16 +95,12 @@ tbody tr:hover { background: var(--s2); }
 .chart-card h3 { font-size: 0.85rem; font-weight: 700; color: var(--muted); margin-bottom: 1rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .chart-wrap { position: relative; height: 200px; }
 .history-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-
-/* ── SETTINGS VIEW ── */
 .settings-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 520px; }
 .settings-card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; }
 .settings-note { color: var(--muted); font-size: 0.8rem; margin-top: 1rem; line-height: 1.6; }
-
-/* ── RESPONSIVE ── */
+.action-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 @media (max-width: 640px) {
-  main { padding: 1rem; }
-  nav { padding: 0 1rem; gap: 1rem; }
+  main { padding: 1rem; } nav { padding: 0 1rem; gap: 1rem; }
   th:nth-child(n+4), td:nth-child(n+4) { display: none; }
 }
 </style>
@@ -206,7 +115,7 @@ tbody tr:hover { background: var(--s2); }
 </nav>
 <main>
 
-  <!-- ── DASHBOARD VIEW ── -->
+  <!-- ── DASHBOARD ── -->
   <div id="view-dashboard" class="view active">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
       <div>
@@ -215,14 +124,12 @@ tbody tr:hover { background: var(--s2); }
       </div>
       <button class="btn btn-primary" onclick="openAddModal()">+ モニター追加</button>
     </div>
-
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">合計</div><div class="stat-value c-blue" id="stat-total">—</div></div>
       <div class="stat-card"><div class="stat-label">稼働中</div><div class="stat-value c-green" id="stat-up">—</div></div>
       <div class="stat-card"><div class="stat-label">ダウン</div><div class="stat-value c-red" id="stat-down">—</div></div>
       <div class="stat-card"><div class="stat-label">ヘルス</div><div class="stat-value" id="stat-health">—</div></div>
     </div>
-
     <div class="monitors-card">
       <div class="card-hdr">
         <span>モニター一覧</span>
@@ -232,7 +139,7 @@ tbody tr:hover { background: var(--s2); }
     </div>
   </div>
 
-  <!-- ── DETAIL VIEW ── -->
+  <!-- ── DETAIL ── -->
   <div id="view-detail" class="view">
     <div class="detail-header">
       <div>
@@ -253,7 +160,7 @@ tbody tr:hover { background: var(--s2); }
     </div>
   </div>
 
-  <!-- ── SETTINGS VIEW ── -->
+  <!-- ── SETTINGS ── -->
   <div id="view-settings" class="view">
     <div style="margin-bottom:2rem;">
       <h1 style="font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;">設定</h1>
@@ -274,25 +181,72 @@ tbody tr:hover { background: var(--s2); }
 </main>
 
 <!-- ── ADD MODAL ── -->
-<div id="add-modal" class="modal-overlay" onclick="if(event.target===this)closeAddModal()">
+<div id="add-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('add-modal')">
   <div class="modal">
     <h2>モニターを追加</h2>
     <div class="form-group"><label>名前</label><input id="m-name" placeholder="例: 自社サイト"></div>
     <div class="form-group"><label>URL</label><input id="m-url" placeholder="https://example.com"></div>
     <div class="form-group"><label>通知メール（任意）</label><input id="m-email" type="email" placeholder="alerts@example.com"></div>
+    <div class="form-group">
+      <label>チェック間隔</label>
+      <select id="m-interval">
+        <option value="30">30秒</option>
+        <option value="60" selected>1分</option>
+        <option value="300">5分</option>
+        <option value="600">10分</option>
+        <option value="1800">30分</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="addMonitor()">追加する</button>
-      <button class="btn btn-ghost" onclick="closeAddModal()">キャンセル</button>
+      <button class="btn btn-ghost" onclick="closeModal('add-modal')">キャンセル</button>
     </div>
   </div>
 </div>
 
-<!-- ── TOAST ── -->
+<!-- ── EDIT MODAL ── -->
+<div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('edit-modal')">
+  <div class="modal">
+    <h2>モニターを編集</h2>
+    <input type="hidden" id="e-id">
+    <div class="form-group"><label>名前</label><input id="e-name" placeholder="例: 自社サイト"></div>
+    <div class="form-group"><label>URL</label><input id="e-url" placeholder="https://example.com"></div>
+    <div class="form-group"><label>通知メール（任意）</label><input id="e-email" type="email" placeholder="alerts@example.com"></div>
+    <div class="form-group">
+      <label>チェック間隔</label>
+      <select id="e-interval">
+        <option value="30">30秒</option>
+        <option value="60">1分</option>
+        <option value="300">5分</option>
+        <option value="600">10分</option>
+        <option value="1800">30分</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEdit()">保存する</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div id="delete-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('delete-modal')">
+  <div class="modal" style="max-width:380px;">
+    <h2>本当に削除しますか？</h2>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem;">「<span id="delete-name" style="color:var(--text);font-weight:600;"></span>」を削除します。この操作は取り消せません。</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+      <button class="btn btn-ghost" onclick="closeModal('delete-modal')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 let detailChart = null;
 let currentView = 'dashboard';
+let pendingDeleteId = null;
 
 // ── Views ──────────────────────────────────────────────────────────────────
 function showView(name) {
@@ -300,11 +254,14 @@ function showView(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => {
-    if (b.textContent.includes(name === 'dashboard' ? 'ダッシュ' : '設定')) b.classList.add('active');
+    if ((name === 'dashboard' && b.textContent.includes('ダッシュ')) ||
+        (name === 'settings'  && b.textContent.includes('設定'))) {
+      b.classList.add('active');
+    }
   });
   currentView = name;
   if (name === 'dashboard') loadMonitors();
-  if (name === 'settings') loadSettings();
+  if (name === 'settings')  loadSettings();
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -315,29 +272,26 @@ function toast(msg, type = 'success') {
   setTimeout(() => { el.className = ''; }, 3000);
 }
 
-// ── API helpers ─────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────
 async function api(path, opts = {}) {
-  const res = await fetch(path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts
-  });
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-// ── Monitors ────────────────────────────────────────────────────────────────
+// ── Monitors ───────────────────────────────────────────────────────────────
 async function loadMonitors() {
   try {
     const monitors = await api('/api/monitors');
     const total = monitors.length;
     const up    = monitors.filter(m => m.last_status === 'up').length;
     const down  = monitors.filter(m => m.last_status === 'down').length;
-    document.getElementById('stat-total').textContent  = total;
-    document.getElementById('stat-up').textContent     = up;
-    document.getElementById('stat-down').textContent   = down;
-    const healthEl = document.getElementById('stat-health');
-    healthEl.textContent = total ? Math.round(up/total*100) + '%' : '—';
-    healthEl.className = 'stat-value ' + (up === total ? 'c-green' : down === total ? 'c-red' : 'c-blue');
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-up').textContent    = up;
+    document.getElementById('stat-down').textContent  = down;
+    const hEl = document.getElementById('stat-health');
+    hEl.textContent  = total ? Math.round(up/total*100) + '%' : '—';
+    hEl.className    = 'stat-value ' + (up===total ? 'c-green' : down===total ? 'c-red' : 'c-blue');
 
     const wrap = document.getElementById('monitors-table-wrap');
     if (!monitors.length) {
@@ -346,23 +300,22 @@ async function loadMonitors() {
     }
     wrap.innerHTML = `
       <table>
-        <thead><tr>
-          <th>ステータス</th><th>名前</th><th>URL</th>
-          <th>最終確認</th><th></th>
-        </tr></thead>
+        <thead><tr><th>ステータス</th><th>名前</th><th>URL</th><th>間隔</th><th>最終確認</th><th></th></tr></thead>
         <tbody>
           ${monitors.map(m => `
             <tr>
               <td>${badgeHtml(m.last_status)}</td>
               <td style="font-weight:600;cursor:pointer;" onclick="showDetail(${m.id})">${esc(m.name)}</td>
-              <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                 <a href="${esc(m.url)}" target="_blank" style="color:inherit;">${esc(m.url)}</a>
               </td>
+              <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${formatInterval(m.interval||60)}</td>
               <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${m.last_checked ? m.last_checked.slice(0,19).replace('T',' ') : '未確認'}</td>
               <td>
-                <div style="display:flex;gap:0.5rem;">
+                <div class="action-btns">
+                  <button class="btn btn-warn btn-sm" onclick="openEditModal(${m.id},'${esc(m.name)}','${esc(m.url)}','${esc(m.notify_email||'')}',${m.interval||60})">編集</button>
                   <button class="btn btn-ghost btn-sm" onclick="toggleMonitor(${m.id})">${m.active ? '停止' : '再開'}</button>
-                  <button class="btn btn-danger btn-sm" onclick="deleteMonitor(${m.id}, '${esc(m.name)}')">削除</button>
+                  <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${m.id},'${esc(m.name)}')">削除</button>
                 </div>
               </td>
             </tr>
@@ -372,157 +325,184 @@ async function loadMonitors() {
   } catch(e) { toast('読み込みエラー: ' + e.message, 'error'); }
 }
 
+function formatInterval(sec) {
+  if (sec < 60)   return sec + '秒';
+  if (sec < 3600) return (sec/60) + '分';
+  return (sec/3600) + '時間';
+}
+
 function badgeHtml(status) {
-  const map = { up: ['badge-up','UP'], down: ['badge-down','DOWN'], null: ['badge-unknown','—'], undefined: ['badge-unknown','—'] };
-  const [cls, label] = map[status] || map[null];
+  const map = { up:['badge-up','UP'], down:['badge-down','DOWN'] };
+  const [cls, label] = map[status] || ['badge-unknown','—'];
   return `<span class="badge ${cls}"><span class="bdot"></span>${label}</span>`;
 }
-
 function esc(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-async function deleteMonitor(id, name) {
-  if (!confirm(`「${name}」を削除しますか？`)) return;
+// ── Toggle / Delete ────────────────────────────────────────────────────────
+async function toggleMonitor(id) {
+  try { await api(`/api/monitors/${id}/toggle`, {method:'POST'}); loadMonitors(); }
+  catch(e) { toast('失敗: ' + e.message, 'error'); }
+}
+
+function openDeleteModal(id, name) {
+  pendingDeleteId = id;
+  document.getElementById('delete-name').textContent = name;
+  document.getElementById('delete-modal').classList.add('open');
+}
+async function confirmDelete() {
   try {
-    await api(`/api/monitors/${id}`, { method: 'DELETE' });
-    toast(`「${name}」を削除しました`);
+    await api(`/api/monitors/${pendingDeleteId}`, {method:'DELETE'});
+    toast('削除しました');
+    closeModal('delete-modal');
     loadMonitors();
   } catch(e) { toast('削除失敗: ' + e.message, 'error'); }
 }
 
-async function toggleMonitor(id) {
-  try {
-    await api(`/api/monitors/${id}/toggle`, { method: 'POST' });
-    loadMonitors();
-  } catch(e) { toast('失敗: ' + e.message, 'error'); }
-}
-
-// ── Add Modal ───────────────────────────────────────────────────────────────
+// ── Add Modal ──────────────────────────────────────────────────────────────
 function openAddModal() {
   document.getElementById('add-modal').classList.add('open');
   document.getElementById('m-name').focus();
 }
-function closeAddModal() {
-  document.getElementById('add-modal').classList.remove('open');
-  ['m-name','m-url','m-email'].forEach(id => document.getElementById(id).value = '');
-}
 async function addMonitor() {
-  const name  = document.getElementById('m-name').value.trim();
-  const url   = document.getElementById('m-url').value.trim();
-  const email = document.getElementById('m-email').value.trim();
+  const name     = document.getElementById('m-name').value.trim();
+  const url      = document.getElementById('m-url').value.trim();
+  const email    = document.getElementById('m-email').value.trim();
+  const interval = parseInt(document.getElementById('m-interval').value);
   if (!name || !url) { toast('名前とURLは必須です', 'error'); return; }
   try {
-    await api('/api/monitors', { method: 'POST', body: JSON.stringify({ name, url, notify_email: email }) });
+    await api('/api/monitors', {method:'POST', body:JSON.stringify({name, url, notify_email:email, interval})});
     toast(`「${name}」を追加しました`);
-    closeAddModal();
+    closeModal('add-modal');
+    ['m-name','m-url','m-email'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('m-interval').value = '60';
     loadMonitors();
   } catch(e) { toast('追加失敗: ' + e.message, 'error'); }
 }
 
-// ── Detail ──────────────────────────────────────────────────────────────────
-async function showDetail(id) {
-  showView('detail');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+// ── Edit Modal ─────────────────────────────────────────────────────────────
+function openEditModal(id, name, url, email, interval) {
+  document.getElementById('e-id').value       = id;
+  document.getElementById('e-name').value     = name;
+  document.getElementById('e-url').value      = url;
+  document.getElementById('e-email').value    = email;
+  document.getElementById('e-interval').value = String(interval);
+  document.getElementById('edit-modal').classList.add('open');
+  document.getElementById('e-name').focus();
+}
+async function saveEdit() {
+  const id       = document.getElementById('e-id').value;
+  const name     = document.getElementById('e-name').value.trim();
+  const url      = document.getElementById('e-url').value.trim();
+  const email    = document.getElementById('e-email').value.trim();
+  const interval = parseInt(document.getElementById('e-interval').value);
+  if (!name || !url) { toast('名前とURLは必須です', 'error'); return; }
+  try {
+    await api(`/api/monitors/${id}`, {method:'PATCH', body:JSON.stringify({name, url, notify_email:email, interval})});
+    toast('更新しました');
+    closeModal('edit-modal');
+    loadMonitors();
+  } catch(e) { toast('更新失敗: ' + e.message, 'error'); }
+}
 
+// ── Modal helper ───────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── Detail ─────────────────────────────────────────────────────────────────
+async function showDetail(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-detail').classList.add('active');
+  currentView = 'detail';
   try {
     const monitors = await api('/api/monitors');
     const m = monitors.find(x => x.id === id);
     if (!m) return;
-
     document.getElementById('detail-name').textContent = m.name;
     const urlEl = document.getElementById('detail-url-link');
-    urlEl.textContent = m.url;
-    urlEl.href = m.url;
+    urlEl.textContent = m.url; urlEl.href = m.url;
     document.getElementById('detail-badge').innerHTML = badgeHtml(m.last_status);
 
     const checks = await api(`/api/monitors/${id}/checks?hours=24`);
-    const upChecks = checks.filter(c => c.status === 'up');
-    const uptime = checks.length ? Math.round(upChecks.length / checks.length * 100) : null;
-    const avgMs  = upChecks.length ? Math.round(upChecks.reduce((a,b) => a + (b.ms||0), 0) / upChecks.length) : null;
+    const upC   = checks.filter(c => c.status==='up');
+    const uptime = checks.length ? Math.round(upC.length/checks.length*100) : null;
+    const avgMs  = upC.length ? Math.round(upC.reduce((a,b)=>a+(b.ms||0),0)/upC.length) : null;
 
     document.getElementById('detail-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-label">稼働率 (24h)</div>
-        <div class="stat-value ${uptime>=99?'c-green':uptime>=80?'c-blue':'c-red'}">${uptime !== null ? uptime+'%' : '—'}</div></div>
-      <div class="stat-card"><div class="stat-label">平均レスポンス</div>
-        <div class="stat-value">${avgMs !== null ? avgMs+'ms' : '—'}</div></div>
-      <div class="stat-card"><div class="stat-label">チェック数 (24h)</div>
-        <div class="stat-value c-blue">${checks.length}</div></div>
-      <div class="stat-card"><div class="stat-label">ステータス</div>
-        <div class="stat-value ${m.active?'c-green':'c-red'}" style="font-size:1.1rem;margin-top:0.5rem;">${m.active?'監視中':'停止中'}</div></div>
+      <div class="stat-card"><div class="stat-label">稼働率 (24h)</div><div class="stat-value ${uptime>=99?'c-green':uptime>=80?'c-blue':'c-red'}">${uptime!==null?uptime+'%':'—'}</div></div>
+      <div class="stat-card"><div class="stat-label">平均レスポンス</div><div class="stat-value">${avgMs!==null?avgMs+'ms':'—'}</div></div>
+      <div class="stat-card"><div class="stat-label">チェック数 (24h)</div><div class="stat-value c-blue">${checks.length}</div></div>
+      <div class="stat-card"><div class="stat-label">チェック間隔</div><div class="stat-value c-green" style="font-size:1.1rem;margin-top:0.4rem;">${formatInterval(m.interval||60)}</div></div>
     `;
 
-    // Chart
     if (detailChart) { detailChart.destroy(); detailChart = null; }
     const ctx = document.getElementById('detail-chart').getContext('2d');
     detailChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: checks.map(c => new Date(c.t+'Z').toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})),
-        datasets: [{
-          data: checks.map(c => c.ms),
-          backgroundColor: checks.map(c => c.status==='up' ? 'rgba(0,229,160,0.7)' : 'rgba(255,68,102,0.7)'),
-          borderRadius: 3, borderSkipped: false,
-        }]
+        datasets: [{ data: checks.map(c=>c.ms), backgroundColor: checks.map(c=>c.status==='up'?'rgba(0,229,160,0.7)':'rgba(255,68,102,0.7)'), borderRadius:3, borderSkipped:false }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#151922', borderColor: '#1e2330', borderWidth: 1, titleColor: '#4a5568', bodyColor: '#dde3f0', callbacks: { label: ctx => ctx.raw + ' ms' } } },
-        scales: {
-          x: { grid: { color: 'rgba(30,35,48,0.8)' }, ticks: { color: '#4a5568', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 12 } },
-          y: { grid: { color: 'rgba(30,35,48,0.8)' }, ticks: { color: '#4a5568', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v+'ms' }, beginAtZero: true }
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#151922', borderColor:'#1e2330', borderWidth:1, titleColor:'#4a5568', bodyColor:'#dde3f0', callbacks:{label:ctx=>ctx.raw+'ms'} } },
+        scales:{
+          x:{ grid:{color:'rgba(30,35,48,0.8)'}, ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:10},maxTicksLimit:12} },
+          y:{ grid:{color:'rgba(30,35,48,0.8)'}, ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:10},callback:v=>v+'ms'}, beginAtZero:true }
         }
       }
     });
 
-    // History table
     const recent = [...checks].reverse().slice(0,50);
     document.getElementById('detail-history').innerHTML = recent.length ? `
       <table>
         <thead><tr><th>日時</th><th>ステータス</th><th>HTTPコード</th><th>レスポンス</th></tr></thead>
-        <tbody>${recent.map(c => `
+        <tbody>${recent.map(c=>`
           <tr>
             <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${c.t.slice(0,19).replace('T',' ')}</td>
             <td>${badgeHtml(c.status)}</td>
-            <td style="font-family:var(--mono);">${c.code || '—'}</td>
-            <td style="font-family:var(--mono);">${c.ms != null ? c.ms+'ms' : '—'}</td>
+            <td style="font-family:var(--mono);">${c.code||'—'}</td>
+            <td style="font-family:var(--mono);">${c.ms!=null?c.ms+'ms':'—'}</td>
           </tr>`).join('')}
         </tbody>
       </table>` : '<div class="empty"><p>まだデータがありません</p></div>';
-
   } catch(e) { toast('読み込みエラー: ' + e.message, 'error'); }
 }
 
-// ── Settings ────────────────────────────────────────────────────────────────
+// ── Settings ───────────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
     const cfg = await api('/api/settings');
-    document.getElementById('s-host').value   = cfg.smtp_host   || '';
-    document.getElementById('s-port').value   = cfg.smtp_port   || '587';
-    document.getElementById('s-user').value   = cfg.smtp_user   || '';
+    document.getElementById('s-host').value   = cfg.smtp_host    || '';
+    document.getElementById('s-port').value   = cfg.smtp_port    || '587';
+    document.getElementById('s-user').value   = cfg.smtp_user    || '';
     document.getElementById('s-notify').value = cfg.notify_email || '';
   } catch(e) {}
 }
 async function saveSettings() {
   try {
-    await api('/api/settings', { method: 'POST', body: JSON.stringify({
-      smtp_host: document.getElementById('s-host').value,
-      smtp_port: document.getElementById('s-port').value,
-      smtp_user: document.getElementById('s-user').value,
-      smtp_pass: document.getElementById('s-pass').value,
+    await api('/api/settings', {method:'POST', body:JSON.stringify({
+      smtp_host:    document.getElementById('s-host').value,
+      smtp_port:    document.getElementById('s-port').value,
+      smtp_user:    document.getElementById('s-user').value,
+      smtp_pass:    document.getElementById('s-pass').value,
       notify_email: document.getElementById('s-notify').value,
     })});
     toast('設定を保存しました');
   } catch(e) { toast('保存失敗: ' + e.message, 'error'); }
 }
 
-// ── Enter key on modal ──────────────────────────────────────────────────────
+// ── Keyboard ───────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeAddModal();
-  if (e.key === 'Enter' && document.getElementById('add-modal').classList.contains('open')) addMonitor();
+  if (e.key === 'Escape') ['add-modal','edit-modal','delete-modal'].forEach(closeModal);
+  if (e.key === 'Enter') {
+    if (document.getElementById('add-modal').classList.contains('open'))  addMonitor();
+    if (document.getElementById('edit-modal').classList.contains('open')) saveEdit();
+  }
 });
 
-// ── Init ────────────────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────────
 loadMonitors();
 setInterval(() => { if (currentView === 'dashboard') loadMonitors(); }, 30000);
 </script>
