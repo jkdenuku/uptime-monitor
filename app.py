@@ -32,6 +32,7 @@ def init_db():
                     last_status  TEXT,
                     last_checked TIMESTAMP,
                     notify_email TEXT,
+                    interval     INTEGER NOT NULL DEFAULT 60,
                     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS checks (
@@ -48,6 +49,13 @@ def init_db():
                     value TEXT
                 );
             ''')
+        # Migration: add interval column if not exists
+            cur.execute("""
+                DO $$ BEGIN
+                  ALTER TABLE monitors ADD COLUMN IF NOT EXISTS interval INTEGER NOT NULL DEFAULT 60;
+                EXCEPTION WHEN others THEN NULL;
+                END $$;
+            """)
         conn.commit()
 
 def check_url(monitor):
@@ -164,6 +172,26 @@ def api_delete_monitor(mid):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute('DELETE FROM monitors WHERE id=%s', (mid,))
+        conn.commit()
+    return jsonify({'ok': True})
+
+@app.route('/api/monitors/<int:mid>', methods=['PATCH'])
+def api_edit_monitor(mid):
+    data     = request.json
+    name     = (data.get('name') or '').strip()
+    url      = (data.get('url') or '').strip()
+    email    = (data.get('notify_email') or '').strip()
+    interval = int(data.get('interval', 60))
+    if not name or not url:
+        return jsonify({'error': 'Name and URL are required'}), 400
+    if not url.startswith(('http://','https://')):
+        url = 'https://' + url
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                'UPDATE monitors SET name=%s, url=%s, notify_email=%s, interval=%s WHERE id=%s',
+                (name, url, email, interval, mid)
+            )
         conn.commit()
     return jsonify({'ok': True})
 
