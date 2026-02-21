@@ -7,18 +7,12 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-production')
 
-DATABASE_URL  = os.environ.get('DATABASE_URL', '')
-MAIL_SERVER   = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-MAIL_PORT     = int(os.environ.get('MAIL_PORT', 587))
-MAIL_USER     = os.environ.get('MAIL_USER', '')
-MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
-MAIL_FROM     = os.environ.get('MAIL_FROM', MAIL_USER)
-MAIL_TO       = os.environ.get('MAIL_TO', '')
+DATABASE_URL   = os.environ.get('DATABASE_URL', '')
 CHECK_INTERVAL = int(os.environ.get('CHECK_INTERVAL', 60))
 
 
@@ -79,7 +73,6 @@ def check_url(monitor):
                 'UPDATE monitors SET last_status=%s, last_checked=CURRENT_TIMESTAMP WHERE id=%s',
                 (status, mid)
             )
-            # 直近1000件だけ保持
             cur.execute('''
                 DELETE FROM checks WHERE monitor_id=%s AND id NOT IN
                 (SELECT id FROM checks WHERE monitor_id=%s ORDER BY id DESC LIMIT 1000)
@@ -87,11 +80,15 @@ def check_url(monitor):
         conn.commit()
 
     if status == 'down' and monitor['last_status'] != 'down':
-        send_alert(monitor, status)
+        threading.Thread(target=send_alert, args=(monitor,), daemon=True).start()
 
-def send_alert(monitor, status):
-    to_addr = monitor['notify_email'] or MAIL_TO
-    if not to_addr or not MAIL_USER:
+def send_alert(monitor):
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute('SELECT * FROM settings')
+            cfg = {r['key']: r['value'] for r in cur.fetchall()}
+    to_addr = monitor['notify_email'] or cfg.get('notify_email','')
+    if not to_addr or not cfg.get('smtp_user'):
         return
     subject = f"[ALERT] {monitor['name']} is DOWN"
     body    = (f"Monitor: {monitor['name']}\n"
@@ -99,13 +96,13 @@ def send_alert(monitor, status):
                f"Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     msg = MIMEText(body)
     msg['Subject'] = subject
-    msg['From']    = MAIL_FROM
+    msg['From']    = cfg.get('smtp_user')
     msg['To']      = to_addr
     try:
-        with smtplib.SMTP(MAIL_SERVER, MAIL_PORT) as s:
+        with smtplib.SMTP(cfg.get('smtp_host','smtp.gmail.com'), int(cfg.get('smtp_port', 587))) as s:
             s.starttls()
-            s.login(MAIL_USER, MAIL_PASSWORD)
-            s.sendmail(MAIL_FROM, [to_addr], msg.as_string())
+            s.login(cfg.get('smtp_user'), cfg.get('smtp_pass',''))
+            s.sendmail(cfg.get('smtp_user'), [to_addr], msg.as_string())
     except Exception as e:
         print(f"Mail error: {e}")
 
@@ -123,115 +120,103 @@ def monitoring_loop():
         time.sleep(CHECK_INTERVAL)
 
 
+# ── 唯一のHTMLルート ──────────────────────────────────────────────────────────
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+# ── API ──────────────────────────────────────────────────────────────────────
+@app.route('/api/monitors')
+def api_monitors():
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute('SELECT * FROM monitors ORDER BY created_at DESC')
-            monitors = cur.fetchall()
-    total = len(monitors)
-    up    = sum(1 for m in monitors if m['last_status'] == 'up')
-    down  = sum(1 for m in monitors if m['last_status'] == 'down')
-    return render_template('index.html', monitors=monitors, total=total, up=up, down=down)
+            monitors = [dict(m) for m in cur.fetchall()]
+            for m in monitors:
+                if m.get('last_checked'):
+                    m['last_checked'] = str(m['last_checked'])
+                if m.get('created_at'):
+                    m['created_at'] = str(m['created_at'])
+    return jsonify(monitors)
 
-@app.route('/monitor/add', methods=['GET','POST'])
-def add_monitor():
-    if request.method == 'POST':
-        name  = request.form.get('name','').strip()
-        url   = request.form.get('url','').strip()
-        email = request.form.get('notify_email','').strip()
-        if not name or not url:
-            flash('Name and URL are required.', 'error')
-            return redirect(url_for('add_monitor'))
-        if not url.startswith(('http://','https://')):
-            url = 'https://' + url
-        with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute('INSERT INTO monitors (name, url, notify_email) VALUES (%s,%s,%s)', (name, url, email))
-            conn.commit()
-        flash(f'Monitor "{name}" added!', 'success')
-        return redirect(url_for('index'))
-    return render_template('add.html')
-
-@app.route('/monitor/<int:mid>')
-def monitor_detail(mid):
+@app.route('/api/monitors', methods=['POST'])
+def api_add_monitor():
+    data  = request.json
+    name  = (data.get('name') or '').strip()
+    url   = (data.get('url') or '').strip()
+    email = (data.get('notify_email') or '').strip()
+    if not name or not url:
+        return jsonify({'error': 'Name and URL are required'}), 400
+    if not url.startswith(('http://','https://')):
+        url = 'https://' + url
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT * FROM monitors WHERE id=%s', (mid,))
-            m = cur.fetchone()
-            if not m:
-                return redirect(url_for('index'))
-            cur.execute('SELECT * FROM checks WHERE monitor_id=%s ORDER BY checked_at DESC LIMIT 200', (mid,))
-            checks = cur.fetchall()
-            since = datetime.utcnow() - timedelta(hours=24)
-            cur.execute('SELECT status FROM checks WHERE monitor_id=%s AND checked_at>=%s', (mid, since))
-            rows = cur.fetchall()
-    uptime_24h = None
-    if rows:
-        uptime_24h = round(sum(1 for r in rows if r['status'] == 'up') / len(rows) * 100, 2)
-    return render_template('detail.html', monitor=m, checks=checks, uptime_24h=uptime_24h)
+            cur.execute(
+                'INSERT INTO monitors (name, url, notify_email) VALUES (%s,%s,%s) RETURNING id',
+                (name, url, email)
+            )
+            new_id = cur.fetchone()['id']
+        conn.commit()
+    return jsonify({'id': new_id, 'name': name, 'url': url}), 201
 
-@app.route('/monitor/<int:mid>/delete', methods=['POST'])
-def delete_monitor(mid):
+@app.route('/api/monitors/<int:mid>', methods=['DELETE'])
+def api_delete_monitor(mid):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute('DELETE FROM monitors WHERE id=%s', (mid,))
         conn.commit()
-    flash('Monitor deleted.', 'success')
-    return redirect(url_for('index'))
+    return jsonify({'ok': True})
 
-@app.route('/monitor/<int:mid>/toggle', methods=['POST'])
-def toggle_monitor(mid):
+@app.route('/api/monitors/<int:mid>/toggle', methods=['POST'])
+def api_toggle_monitor(mid):
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute('SELECT active FROM monitors WHERE id=%s', (mid,))
             m = cur.fetchone()
-            if m:
-                cur.execute('UPDATE monitors SET active=%s WHERE id=%s', (0 if m['active'] else 1, mid))
+            if not m:
+                return jsonify({'error': 'Not found'}), 404
+            cur.execute('UPDATE monitors SET active=%s WHERE id=%s', (0 if m['active'] else 1, mid))
         conn.commit()
-    return redirect(url_for('index'))
+    return jsonify({'ok': True})
 
-@app.route('/api/monitor/<int:mid>/chart')
-def chart_data(mid):
+@app.route('/api/monitors/<int:mid>/checks')
+def api_checks(mid):
     hours = int(request.args.get('hours', 24))
     since = datetime.utcnow() - timedelta(hours=hours)
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                'SELECT checked_at, response_ms, status FROM checks WHERE monitor_id=%s AND checked_at>=%s ORDER BY checked_at ASC',
+                'SELECT checked_at, response_ms, status, status_code FROM checks WHERE monitor_id=%s AND checked_at>=%s ORDER BY checked_at ASC',
                 (mid, since)
             )
             rows = cur.fetchall()
-    return jsonify([{'t': str(r['checked_at']), 'ms': r['response_ms'], 'status': r['status']} for r in rows])
+    return jsonify([{'t': str(r['checked_at']), 'ms': r['response_ms'], 'status': r['status'], 'code': r['status_code']} for r in rows])
 
-@app.route('/api/status')
-def api_status():
+@app.route('/api/settings', methods=['GET'])
+def api_get_settings():
     with get_db() as conn:
         with conn.cursor() as cur:
-            cur.execute('SELECT id, name, url, last_status, last_checked FROM monitors')
-            monitors = cur.fetchall()
-    return jsonify([dict(m) for m in monitors])
+            cur.execute('SELECT key, value FROM settings')
+            cfg = {r['key']: r['value'] for r in cur.fetchall()}
+    # パスワードは返さない
+    cfg.pop('smtp_pass', None)
+    return jsonify(cfg)
 
-@app.route('/settings', methods=['GET', 'POST'])
-def settings():
+@app.route('/api/settings', methods=['POST'])
+def api_save_settings():
+    data = request.json
     with get_db() as conn:
-        if request.method == 'POST':
-            with conn.cursor() as cur:
-                for k in ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'notify_email']:
+        with conn.cursor() as cur:
+            for k in ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'notify_email']:
+                if k in data:
                     cur.execute(
                         'INSERT INTO settings (key,value) VALUES (%s,%s) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value',
-                        (k, request.form.get(k, ''))
+                        (k, data[k])
                     )
-            conn.commit()
-            flash('Settings saved!', 'success')
-            return redirect(url_for('settings'))
-        with conn.cursor() as cur:
-            cur.execute('SELECT * FROM settings')
-            cfg = {row['key']: row['value'] for row in cur.fetchall()}
-    return render_template('settings.html', cfg=cfg)
+        conn.commit()
+    return jsonify({'ok': True})
 
 
-# gunicornでも動くようにモジュールレベルで初期化
 init_db()
 threading.Thread(target=monitoring_loop, daemon=True).start()
 
