@@ -483,19 +483,36 @@ async function showDetail(id) {
       }
     });
 
-    const recent = [...checks].reverse().slice(0,50);
-    document.getElementById('detail-history').innerHTML = recent.length ? `
-      <table>
-        <thead><tr><th>日時</th><th>ステータス</th><th>HTTPコード</th><th>レスポンス</th></tr></thead>
-        <tbody>${recent.map(c=>`
-          <tr>
-            <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${c.t.slice(0,19).replace('T',' ')}</td>
-            <td>${badgeHtml(c.status)}</td>
-            <td style="font-family:var(--mono);">${c.code||'—'}</td>
-            <td style="font-family:var(--mono);">${c.ms!=null?c.ms+'ms':'—'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>` : '<div class="empty"><p>まだデータがありません</p></div>';
+    const allChecks = [...checks].reverse();
+    let historyShown = 10;
+
+    function renderHistory() {
+      const visible = allChecks.slice(0, historyShown);
+      const hasMore = allChecks.length > historyShown;
+      document.getElementById('detail-history').innerHTML = visible.length ? `
+        <table>
+          <thead><tr><th>日時</th><th>ステータス</th><th>HTTPコード</th><th>レスポンス</th></tr></thead>
+          <tbody>${visible.map(c=>`
+            <tr>
+              <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${c.t.slice(0,19).replace('T',' ')}</td>
+              <td>${badgeHtml(c.status)}</td>
+              <td style="font-family:var(--mono);">${c.code||'—'}</td>
+              <td style="font-family:var(--mono);">${c.ms!=null?c.ms+'ms':'—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        ${hasMore ? `
+          <div style="text-align:center;padding:1rem;border-top:1px solid var(--border);">
+            <button class="btn btn-ghost" onclick="historyShown+=10;renderHistory();">
+              もっと見る（残り ${allChecks.length - historyShown} 件）
+            </button>
+          </div>` : `
+          <div style="text-align:center;padding:0.75rem;color:var(--muted);font-size:0.8rem;border-top:1px solid var(--border);">
+            すべて表示しました（全 ${allChecks.length} 件）
+          </div>`}
+      ` : '<div class="empty"><p>まだデータがありません</p></div>';
+    }
+    renderHistory();
   } catch(e) { toast('読み込みエラー: ' + e.message, 'error'); }
 }
 
