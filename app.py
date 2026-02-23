@@ -115,17 +115,24 @@ def send_alert(monitor):
         print(f"Mail error: {e}")
 
 def monitoring_loop():
+    last_checked = {}  # monitor_id -> 最後にチェックした時刻
     while True:
         try:
             with get_db() as conn:
                 with conn.cursor() as cur:
                     cur.execute('SELECT * FROM monitors WHERE active=1')
                     monitors = cur.fetchall()
+            now = time.time()
             for m in monitors:
-                threading.Thread(target=check_url, args=(m,), daemon=True).start()
+                mid      = m['id']
+                interval = m['interval'] or 60
+                last     = last_checked.get(mid, 0)
+                if now - last >= interval:
+                    last_checked[mid] = now
+                    threading.Thread(target=check_url, args=(m,), daemon=True).start()
         except Exception as e:
             print(f"Loop error: {e}")
-        time.sleep(CHECK_INTERVAL)
+        time.sleep(10)  # 10秒ごとに各モニターのintervalを確認
 
 
 # ── 唯一のHTMLルート ──────────────────────────────────────────────────────────
